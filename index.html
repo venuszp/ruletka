@@ -297,8 +297,7 @@
             font-size: 2.2em;
             font-weight: 700;
         }
-
-        /* --- ИЗМЕНЕНИЕ: Стили для мобильных устройств --- */
+        
         @media (max-width: 900px) {
             .main-container {
                 flex-direction: column;
@@ -306,7 +305,7 @@
             }
 
             .wheel-section {
-                flex-grow: 0; /* Убираем растягивание */
+                flex-grow: 0;
             }
 
             .wheel-wrapper {
@@ -341,26 +340,24 @@
                 max-height: 80vh;
                 box-shadow: 0 -10px 25px rgba(0,0,0,0.4);
                 transform: translateY(100%);
-                opacity: 1; /* Всегда видима при открытии */
+                opacity: 1;
                 transition: transform 0.5s var(--transition-curve);
+                z-index: 200; /* ИЗМЕНЕНИЕ: Ставим панель поверх всего */
             }
             
-            /* Когда панель открыта (класс убран) */
             body:not(.controls-closed) .controls-section {
                 transform: translateY(0);
             }
             
-            /* Когда панель закрыта */
             body.controls-closed .controls-section {
                 transform: translateY(100%);
             }
             
             body.controls-closed .wheel-section {
-                transform: none; /* Возвращаем рулетку в центр по X */
+                transform: none;
             }
 
             .open-controls-btn {
-                /* Перемещаем кнопку вниз */
                 top: auto;
                 bottom: 20px;
             }
@@ -390,9 +387,16 @@
             <button class="close-controls-btn" id="close-controls-btn">&times;</button>
             <h2>Варианты для рулетки</h2>
             <p>Введите каждый приз с новой строки</p>
-            <textarea id="prize-input" rows="10">
-10 tasks.
-0 tasks
+            <textarea 
+                id="prize-input" 
+                rows="10"
+                autocomplete="off" 
+                autocorrect="off" 
+                autocapitalize="off" 
+                spellcheck="false"
+            >
+30 tasks.
+0 tasks               
 </textarea>
             <button id="update-btn">Обновить рулетку</button>
         </div>
@@ -468,7 +472,6 @@
                     label.style.fontSize = `${dynamicFontSize}px`;
                     
                     const labelAngleRad = ((index * sectorAngle) + (sectorAngle / 2) - 90) * (Math.PI / 180);
-                    // ИЗМЕНЕНИЕ: немного увеличиваем радиус для лучшей читаемости на мобильных
                     const textRadius = wheel.offsetWidth / 2 * 0.7; 
                     const x = textRadius * Math.cos(labelAngleRad);
                     const y = textRadius * Math.sin(labelAngleRad);
@@ -551,10 +554,15 @@
                 document.body.classList.remove('controls-closed');
             });
             
-            // Инициализация и обновление при изменении размера окна
             updateWheel();
             window.addEventListener('resize', updateWheel);
         });
+    </script>
+    
+    <script>
+        if (window.innerWidth <= 900) {
+            document.body.classList.add('controls-closed');
+        }
     </script>
 </body>
 </html>
