@@ -108,6 +108,9 @@
             text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.8);
             white-space: nowrap;
             text-align: center;
+            /* --- ИЗМЕНЕНИЕ ЗДЕСЬ --- */
+            backface-visibility: hidden; /* Скрывает "обратную сторону" элемента при трансформации */
+            transform-style: preserve-3d; /* Улучшает рендеринг 3D-трансформаций */
         }
 
         .pointer {
@@ -342,7 +345,7 @@
                 transform: translateY(100%);
                 opacity: 1;
                 transition: transform 0.5s var(--transition-curve);
-                z-index: 200; /* ИЗМЕНЕНИЕ: Ставим панель поверх всего */
+                z-index: 200;
             }
             
             body:not(.controls-closed) .controls-section {
@@ -396,7 +399,7 @@
                 spellcheck="false"
             >
 30 tasks.
-0 tasks               
+0 tasks.
 </textarea>
             <button id="update-btn">Обновить рулетку</button>
         </div>
