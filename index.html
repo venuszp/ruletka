@@ -3,18 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Рулетка Фортуны</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <title>Колесо фортуны</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            --bg-color: #1a1d2d;
-            --wheel-bg: #2c3049;
-            --controls-bg: #23263a;
-            --text-color: #e0e1eb;
-            --accent-color: #00aaff;
-            --glow-color: rgba(0, 170, 255, 0.7);
-            --transition-curve: cubic-bezier(0.2, 0.8, 0.2, 1);
+            --border-color: #dcdcdc;
+            --bg-light: #f8f9fa;
+            --text-color: #333;
+            --button-start-bg: #3498db;
+            --button-start-hover-bg: #2980b9;
+            --button-reset-bg: #e0e0e0;
+            --button-reset-hover-bg: #cccccc;
+            --pointer-color: #e74c3c;
+            --spin-duration: 7000; /* Длительность в миллисекундах */
         }
 
         * {
@@ -24,43 +26,98 @@
         }
 
         body {
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Roboto', sans-serif;
             color: var(--text-color);
+            background-color: #fff;
             user-select: none;
-            background: #17181c;
-            background-image: 
-                linear-gradient(135deg, #2a0033 0%, #0d001a 50%, #002b33 100%);
-            animation: gradient-shift 15s ease infinite alternate;
-            background-size: 200% 200%;
-            /* ИЗМЕНЕНИЕ 1: Убираем overflow: hidden, чтобы исправить нажатия */
-            overflow: hidden; /* Мы вернем его, но более безопасно */
-            height: 100vh;
-            position: relative;
+            overflow-x: hidden;
         }
         
-        @keyframes gradient-shift {
-            0% { background-position: 0% 0%; }
-            100% { background-position: 100% 100%; }
-        }
-
-        .main-container {
+        .page-wrapper {
             display: flex;
-            height: 100%;
-            width: 100%;
-            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            gap: 20px;
         }
 
-        .wheel-section {
-            flex-grow: 1;
+        .banners-section {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 180px;
+            flex-shrink: 0;
+            transition: opacity 0.4s, width 0.4s, margin 0.4s, padding 0.4s;
+            overflow: hidden; 
+        }
+        
+        .banners-section.hidden {
+            opacity: 0;
+            width: 0;
+            margin-right: 0;
+            padding-right: 0;
+        }
+
+        .banner-placeholder {
+            width: 100%;
+            height: 250px;
+            background-color: var(--bg-light);
+            border: 1px solid var(--border-color);
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100%;
-            transition: transform 0.5s var(--transition-curve);
+            font-size: 14px;
+            color: #999;
+            text-align: center;
+            padding: 10px;
+        }
+
+        .main-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .main-header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 15px;
+        }
+
+        .main-header h1 {
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .header-buttons button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: background-color 0.2s ease;
         }
         
-        body.controls-closed .wheel-section {
-            transform: translateX(175px);
+        .header-buttons button:first-child {
+            background-color: var(--button-start-bg);
+            color: white;
+            margin-right: 10px;
+        }
+        .header-buttons button:first-child:hover {
+            background-color: var(--button-start-hover-bg);
+        }
+        .header-buttons button:last-child {
+            background-color: var(--button-reset-bg);
+            color: var(--text-color);
+        }
+        .header-buttons button:last-child:hover {
+            background-color: var(--button-reset-hover-bg);
         }
 
         .wheel-wrapper {
@@ -70,6 +127,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            margin-bottom: 20px;
         }
 
         .wheel {
@@ -78,19 +136,7 @@
             border-radius: 50%;
             position: relative;
             overflow: hidden;
-            border: 8px solid var(--wheel-bg);
-            box-shadow: 0 0 25px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(0, 0, 0, 0.4);
-        }
-        
-        .wheel-labels span.winner-highlight {
-            text-shadow: 0 0 10px #fff, 0 0 20px var(--glow-color);
-            transform-origin: center;
-            transition: all 0.5s ease-out;
-        }
-
-        .wheel,
-        .wheel-labels {
-            transition: transform 7s var(--transition-curve);
+            border: 5px solid #ccc;
         }
 
         .wheel-labels {
@@ -100,213 +146,281 @@
             pointer-events: none;
             z-index: 4;
         }
-
+        
         .wheel-labels span {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-weight: 700;
-            color: white;
-            text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.8);
+            font-weight: 500;
+            color: var(--text-color);
+            text-shadow: 0 0 2px white;
             white-space: nowrap;
             text-align: center;
-            backface-visibility: hidden;
-            transform-style: preserve-3d;
         }
+        
+        .wheel-labels span.winner-highlight {
+            font-weight: 700;
+            color: #000;
+            animation: winner-glow 1.5s ease-in-out infinite alternate;
+        }
+
+        @keyframes winner-glow {
+            from {
+                text-shadow: 0 0 5px #fff, 0 0 10px #ffdd00, 0 0 15px #ffdd00;
+            }
+            to {
+                text-shadow: 0 0 10px #fff, 0 0 20px #ffdd00, 0 0 30px #ffdd00;
+            }
+        }
+
 
         .pointer {
             position: absolute;
-            width: 0; height: 0;
-            border-left: 20px solid transparent;
-            border-right: 20px solid transparent;
-            border-top: 40px solid var(--accent-color);
-            top: -10px; z-index: 10;
-            filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.5));
-            transform-origin: bottom center;
+            width: 0;
+            height: 0;
+            border-top: 12px solid transparent;
+            border-bottom: 12px solid transparent;
+            border-right: 24px solid var(--pointer-color);
+            left: 100%;
+            margin-left: -4px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 10;
+            filter: drop-shadow(-2px 2px 2px rgba(0, 0, 0, 0.25));
         }
 
-        .pointer.settle { animation: pointer-settle 0.8s cubic-bezier(0.2, 1.5, 0.5, 1); }
-        @keyframes pointer-settle { 0%{transform:rotate(0deg)} 20%{transform:rotate(15deg)} 40%{transform:rotate(-10deg)} 60%{transform:rotate(5deg)} 80%{transform:rotate(-2deg)} 100%{transform:rotate(0deg)} }
-
-        #spin-btn {
-            position: absolute;
-            width: 120px; height: 120px;
-            border-radius: 50%;
-            background: var(--wheel-bg);
-            border: 5px solid #3c4161;
-            color: var(--text-color);
-            cursor: pointer; z-index: 5;
-            box-shadow: 0 10px 0 #1e2133, 0 15px 20px rgba(0, 0, 0, 0.4);
-            display: flex; justify-content: center; align-items: center;
-            /* ИЗМЕНЕНИЕ 2: Плавный переход для подсветки */
-            transition: transform 0.1s ease, box-shadow 0.3s ease;
+        .description-text {
+            line-height: 1.6;
+            font-size: 15px;
+            color: #555;
+            padding: 15px;
+            background-color: var(--bg-light);
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
         }
-        
-        /* ИЗМЕНЕНИЕ 3: Добавляем подсветку при наведении */
-        #spin-btn:hover {
-            box-shadow: 0 10px 0 #1e2133, 0 15px 20px rgba(0,0,0,0.4), 0 0 25px var(--glow-color);
-        }
-
-        #spin-btn:active {
-            transform: translateY(5px);
-            box-shadow: 0 5px 0 #1e2133, 0 8px 10px rgba(0, 0, 0, 0.4), 0 0 15px var(--glow-color);
-        }
-
-        #spin-btn .spin-btn-text { font-size: 24px; font-weight: 700; }
 
         .controls-section {
-            width: 350px; height: 100%;
-            background: var(--controls-bg);
-            padding: 30px;
-            display: flex; flex-direction: column;
-            box-shadow: -10px 0 25px rgba(0, 0, 0, 0.4);
+            width: 300px;
             flex-shrink: 0;
-            transition: transform 0.5s var(--transition-curve), opacity 0.4s ease-in-out;
-            opacity: 0.2;
-        }
-        
-        .controls-section:hover,
-        .controls-section:focus-within { opacity: 1; }
-        
-        body.controls-closed .controls-section {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-        
-        .close-controls-btn { position: absolute; top: 15px; right: 20px; background: none; border: none; color: #fff; font-size: 28px; cursor: pointer; opacity: .5; }
-        
-        .open-controls-btn {
-            position: fixed; top: 20px; right: 20px;
-            width: 50px; height: 50px;
-            border-radius: 50%;
-            border: none;
-            background: var(--controls-bg);
-            font-size: 24px; cursor: pointer; z-index: 101;
-            opacity: 0; visibility: hidden;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            /* ИЗМЕНЕНИЕ 4: Плавный переход для подсветки */
-            transition: opacity .4s ease, visibility .4s ease, box-shadow .3s ease, transform .3s ease;
-        }
-        
-        /* ИЗМЕНЕНИЕ 5: Подсветка для кнопки настроек */
-        .open-controls-btn:hover {
-            transform: scale(1.1);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3), 0 0 20px var(--glow-color);
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            padding: 20px;
+            background-color: var(--bg-light);
+            height: fit-content;
         }
 
-        body.controls-closed .open-controls-btn {
-            opacity: 1;
-            visibility: visible;
+        .textarea-container {
+            position: relative;
+            width: 100%;
+            height: 250px;
+            margin-bottom: 20px;
         }
 
+        #prize-input, #prize-display {
+            width: 100%;
+            height: 100%;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            padding: 10px;
+            font-size: 16px;
+            font-family: 'Roboto', sans-serif;
+            line-height: 1.5;
+            box-sizing: border-box;
+            position: absolute;
+            top: 0;
+            left: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
         #prize-input {
-            width: 100%; flex-grow: 1;
-            background: var(--bg-color);
-            border: 2px solid var(--wheel-bg);
-            border-radius: 8px; color: var(--text-color);
-            padding: 15px; font-size: 16px;
-            resize: none; margin: 20px 0;
-        }
-
-        #update-btn {
-            padding: 15px; border-radius: 8px;
-            background: var(--accent-color);
-            color: #fff; font-size: 18px;
-            font-weight: 600; cursor: pointer; border: none;
-            /* ИЗМЕНЕНИЕ 6: Плавный переход для подсветки */
-            transition: background-color .3s, box-shadow .3s, transform .2s;
+            z-index: 2;
+            resize: none;
+            overflow-y: auto;
+            color: transparent;
+            background-color: transparent;
+            caret-color: black;
         }
         
-        /* ИЗМЕНЕНИЕ 7: Подсветка для кнопки "Обновить" */
-        #update-btn:hover {
-             box-shadow: 0 0 20px var(--glow-color);
-        }
-        #update-btn:active {
-            transform: scale(0.98);
+        #prize-input:focus {
+            color: var(--text-color);
+            background-color: #fff;
         }
 
-        .modal {
-            display: flex; position: fixed;
-            z-index: 100; left: 0; top: 0;
-            width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, .7);
-            backdrop-filter: blur(5px);
-            justify-content: center; align-items: center;
-            opacity: 0; visibility: hidden;
-            transition: opacity .4s ease, visibility .4s ease;
+        #prize-display {
+            z-index: 1;
+            background-color: #fff;
+            color: var(--text-color);
         }
-
-        .modal.visible { opacity: 1; visibility: visible; }
-
-        .modal-content {
-            background: var(--controls-bg);
-            padding: 40px 60px; border-radius: 15px;
-            text-align: center; position: relative;
-            border: 2px solid var(--accent-color);
-            transform: translateY(50px); opacity: 0;
-            transition: transform .5s cubic-bezier(.2, 1.5, .5, 1), opacity .5s ease;
-        }
-
-        .modal.visible .modal-content {
-            transform: translateY(0); opacity: 1;
-            animation: prize-glow 1.5s infinite alternate;
-        }
-
-        @keyframes prize-glow { from {box-shadow: 0 0 20px var(--glow-color)} to {box-shadow: 0 0 40px var(--glow-color), 0 0 10px var(--glow-color)}}
-        #prize-text { font-size: 2.2em; font-weight: 700; }
         
-        @media (max-width: 900px) {
-            .main-container { flex-direction: column; padding-top: 20px; }
-            .wheel-section { flex-grow: 0; }
-            .wheel-wrapper { width: 90vw; height: 90vw; max-width: 400px; max-height: 400px; }
-            #spin-btn { width: 90px; height: 90px; }
-            #spin-btn .spin-btn-text { font-size: 18px; }
-            .pointer { border-left-width: 15px; border-right-width: 15px; border-top-width: 30px; top: -5px; }
-            .controls-section { position: fixed; bottom: 0; left: 0; width: 100%; height: auto; max-height: 80vh; box-shadow: 0 -10px 25px rgba(0,0,0,0.4); transform: translateY(100%); opacity: 1; transition: transform 0.5s var(--transition-curve); z-index: 200; }
-            body:not(.controls-closed) .controls-section { transform: translateY(0); }
-            body.controls-closed .controls-section { transform: translateY(100%); }
-            body.controls-closed .wheel-section { transform: none; }
-            .open-controls-btn { top: auto; bottom: 20px; }
-            #prize-input { min-height: 150px; flex-grow: 0; }
+        .shortcuts {
+            border-top: 1px solid var(--border-color);
+            padding-top: 15px;
+        }
+
+        .shortcuts p {
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+        
+        .shortcuts code {
+            display: inline-block;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-weight: bold;
+            margin-right: 5px;
+            min-width: 25px;
+            text-align: center;
+        }
+
+        .shortcuts li {
+            list-style: none;
+            margin-bottom: 8px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        #winner-banner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #d4edda;
+            color: #155724;
+            padding: 10px 20px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: 700;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            transform: translateY(-100%);
+            transition: transform 0.3s ease-out;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        #winner-banner.show {
+            transform: translateY(0);
+        }
+
+        #winner-banner .close-btn,
+        #winner-banner .hide-element-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #155724;
+            padding: 0 5px;
+        }
+        #winner-banner .hide-element-btn {
+            font-size: 16px;
+            font-weight: 500;
+            padding: 5px 10px;
+            border: 1px solid #155724;
+            border-radius: 3px;
+            background-color: #c3e6cb;
+            transition: background-color 0.2s;
+        }
+        #winner-banner .hide-element-btn:hover {
+            background-color: #b1dfbb;
+        }
+
+        @media (max-width: 1200px) {
+            .page-wrapper {
+                flex-direction: column;
+                align-items: center;
+            }
+            .banners-section {
+                flex-direction: row;
+                width: 100%;
+                justify-content: center;
+            }
+            .banner-placeholder {
+                width: 180px;
+                height: 250px;
+            }
+            .controls-section {
+                width: 100%;
+                max-width: 600px;
+            }
+            .banners-section.hidden {
+                display: none;
+            }
+        }
+        @media (max-width: 680px) {
+             .wheel-wrapper {
+                width: 90vw;
+                height: 90vw;
+             }
+             .main-header {
+                 flex-direction: column;
+                 gap: 15px;
+             }
+             .banners-section {
+                 display: none;
+             }
         }
     </style>
 </head>
 <body>
 
-    <div class="main-container">
-        <div class="wheel-section">
+    <div id="winner-banner">
+        <button class="close-btn" id="winner-close-btn">X</button>
+        <span id="winner-text"></span>
+        <button class="hide-element-btn" id="winner-hide-btn">S</button>
+    </div>
+
+    <div class="page-wrapper">
+        <div class="banners-section" id="banners-section">
+            <div class="banner-placeholder">Здесь могла быть ваша реклама</div>
+            <div class="banner-placeholder">Рекламный блок</div>
+        </div>
+
+        <div class="main-section">
+            <div class="main-header">
+                <h1>Колесо фортуны</h1>
+                <div class="header-buttons">
+                    <button id="start-btn">Старт</button>
+                    <button id="reset-btn">Сбросить</button>
+                </div>
+            </div>
             <div class="wheel-wrapper">
                 <div class="wheel" id="wheel"></div>
                 <div class="wheel-labels" id="wheel-labels"></div>
                 <div class="pointer" id="pointer"></div>
-                <button id="spin-btn">
-                    <span class="spin-btn-text">Крутить</span>
-                </button>
+            </div>
+            <div class="description-text">
+                <p>Это онлайн-инструмент для случайного выбора названия или предмета. Его также называют выборщиком случайных имён, колесом имён или онлайн-рулеткой. Иногда людям сложно принимать решения. Затем составьте список существующих вариантов или кандидатов, а затем случайным образом выберите один из них. В этом случае вы можете использовать наш инструмент для принятия решений. Просто и весело. Вы можете изменить имена в текстовом поле, поместив одно имя в строку.</p>
             </div>
         </div>
 
-        <div class="controls-section" id="controls-section">
-            <button class="close-controls-btn" id="close-controls-btn">&times;</button>
-            <h2>Варианты для рулетки</h2>
-            <p>Введите каждый приз с новой строки</p>
-            <textarea id="prize-input" rows="10" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-30 tasks.
-0 tasks
-</textarea>
-            <button id="update-btn">Обновить рулетку</button>
+        <div class="controls-section">
+            <div class="textarea-container">
+                <div id="prize-display"></div>
+                <textarea id="prize-input" rows="10" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">30 tasks.
+0 tasks</textarea>
+            </div>
+            
+            <div class="shortcuts">
+                <p>Горячие клавиши:</p>
+                <ul>
+                    <li><code>SPACE</code> покрутите</li>
+                    <li><code>X</code> закрыть баннер</li>
+                    <li><code>S</code> скрыть выбранный элемент</li>
+                    <li><code>R</code> Сбросить</li>
+                    <li><code>E</code> Изменить</li>
+                    <li><code>F</code> Во весь экран</li>
+                </ul>
+            </div>
         </div>
     </div>
     
-    <button class="open-controls-btn" id="open-controls-btn">⚙️</button>
-
-    <div id="prize-modal" class="modal">
-        <div class="modal-content">
-            <p id="prize-text"></p>
-        </div>
-    </div>
-
-    <audio id="spin-sound" src="spin.mp3" preload="auto"></audio>
+    <audio id="tick-sound-template" src="spin.mp3" preload="auto"></audio>
     <audio id="win-sound" src="win.mp3" preload="auto"></audio>
 
     <script>
@@ -314,120 +428,267 @@
             const wheel = document.getElementById('wheel');
             const wheelLabels = document.getElementById('wheel-labels');
             const pointer = document.getElementById('pointer');
-            const spinBtn = document.getElementById('spin-btn');
+            const startBtn = document.getElementById('start-btn');
+            const resetBtn = document.getElementById('reset-btn');
             const prizeInput = document.getElementById('prize-input');
-            const updateBtn = document.getElementById('update-btn');
-            const prizeModal = document.getElementById("prize-modal");
-            const prizeText = document.getElementById("prize-text");
-            const closeControlsBtn = document.getElementById('close-controls-btn');
-            const openControlsBtn = document.getElementById('open-controls-btn');
-            const spinSound = document.getElementById('spin-sound');
+            const prizeDisplay = document.getElementById('prize-display');
             const winSound = document.getElementById('win-sound');
+            const bannersSection = document.getElementById('banners-section');
+            const winnerBanner = document.getElementById('winner-banner');
+            const winnerText = document.getElementById('winner-text');
+            const winnerCloseBtn = document.getElementById('winner-close-btn');
+            const winnerHideBtn = document.getElementById('winner-hide-btn');
+
+            // --- ИЗМЕНЕНИЕ: Создание пула звуков ---
+            const tickSoundTemplate = document.getElementById('tick-sound-template');
+            const POOL_SIZE = 5; // Количество копий звука
+            const tickSoundPool = [];
+            for (let i = 0; i < POOL_SIZE; i++) {
+                tickSoundPool.push(tickSoundTemplate.cloneNode());
+            }
+            let poolIndex = 0;
+            // --- КОНЕЦ ИЗМЕНЕНИЯ ---
+
             let prizes = [];
             let currentRotation = 0;
             let isSpinning = false;
-            let modalTimeout;
-            const colorPalette = ["#ff6b6b","#f06595","#cc5de8","#845ef7","#5c7cfa","#339af0","#22b8cf","#20c997","#51cf66","#94d82d","#fcc419","#ff922b"];
-            spinBtn.addEventListener('click', spinWheel);
+            let lastWinnerRawText = null;
+            let winnerBannerTimeout;
+            
+            const colorPalette = ["#98FB98", "#F5DEB3", "#ADD8E6", "#FFB6C1", "#E6E6FA", "#FAFAD2"];
+            const SPIN_DURATION = 7000;
+
+            const easeOutCubic = t => 1 - Math.pow(1 - t, 4);
+
+            function parsePrizes(text) {
+                return text.split('\n').map(line => {
+                    const trimmedLine = line.trim();
+                    const isActive = !trimmedLine.endsWith('.');
+                    const prizeText = isActive ? line : line.trim().slice(0, -1);
+                    return { rawText: line, text: prizeText, active: isActive };
+                }).filter(p => p.text.trim() !== '');
+            }
+
+            function syncDisplay() {
+                const cleanText = prizeInput.value
+                    .split('\n')
+                    .map(line => line.trim().endsWith('.') ? line.trim().slice(0, -1) : line)
+                    .join('\n');
+                prizeDisplay.textContent = cleanText;
+            }
+
             function updateWheel() {
-                const prizeNames = prizeInput.value.split('\n').filter(name => name.trim() !== '');
-                if (prizeNames.length === 0) {
-                    prizes = [];
-                    wheel.style.background = 'var(--wheel-bg)'; 
+                const inputText = prizeInput.value;
+                prizes = parsePrizes(inputText);
+                syncDisplay();
+
+                const numSectors = prizes.length;
+                if (numSectors === 0) {
+                    wheel.style.background = '#f0f0f0'; 
                     wheelLabels.innerHTML = '';
                     return;
-                };
-                prizes = prizeNames.map(name => {
-                    const trimmedName = name.trim();
-                    if (trimmedName.endsWith('.')) {
-                        return { text: trimmedName.slice(0, -1), active: false };
-                    }
-                    return { text: trimmedName, active: true };
-                });
-                const numSectors = prizes.length;
+                }
+                
                 const sectorAngle = 360 / numSectors;
-                const baseFontSize = 40; const minFontSize = 14;
+
+                const baseFontSize = 35; 
+                const minFontSize = 12;
                 const dynamicFontSize = Math.max(minFontSize, baseFontSize / Math.sqrt(numSectors));
+
                 let gradientString = 'conic-gradient(';
-                prizes.forEach((p, i) => gradientString += `${colorPalette[i % colorPalette.length]} ${i*sectorAngle}deg ${(i+1)*sectorAngle}deg, `);
+                prizes.forEach((p, i) => {
+                    const color = colorPalette[i % colorPalette.length];
+                    gradientString += `${color} ${i*sectorAngle}deg ${(i+1)*sectorAngle}deg, `;
+                });
                 wheel.style.background = gradientString.slice(0, -2) + ')';
+                
                 wheelLabels.innerHTML = '';
                 prizes.forEach((prize, index) => {
                     const label = document.createElement('span');
                     label.textContent = prize.text;
                     label.style.fontSize = `${dynamicFontSize}px`;
+
                     const labelAngleRad = ((index * sectorAngle) + (sectorAngle / 2) - 90) * (Math.PI / 180);
-                    const textRadius = wheel.offsetWidth / 2 * 0.7; 
+                    const textRadius = wheel.offsetWidth / 2 * 0.65; 
                     const x = textRadius * Math.cos(labelAngleRad);
                     const y = textRadius * Math.sin(labelAngleRad);
                     const textRotation = (index * sectorAngle) + (sectorAngle / 2);
+                    
                     label.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px) rotate(${textRotation}deg)`;
                     label.dataset.index = index;
                     wheelLabels.appendChild(label);
                 });
             }
+
+            function animateSpin(startRotation, endRotation) {
+                let startTime = null;
+                let lastSegment = -1;
+                const numSectors = prizes.length;
+                const sectorAngle = 360 / numSectors;
+
+                function step(timestamp) {
+                    if (!startTime) startTime = timestamp;
+                    const progress = timestamp - startTime;
+                    const timeFraction = Math.min(progress / SPIN_DURATION, 1);
+                    const easedFraction = easeOutCubic(timeFraction);
+
+                    const rotation = startRotation + (endRotation - startRotation) * easedFraction;
+                    
+                    wheel.style.transform = `rotate(${rotation}deg)`;
+                    wheelLabels.style.transform = `rotate(${rotation}deg)`;
+                    
+                    const normalizedRotation = (rotation % 360 + 360) % 360;
+                    const currentAngle = 360 - normalizedRotation + 90;
+                    const currentSegment = Math.floor((currentAngle % 360) / sectorAngle);
+
+                    if (currentSegment !== lastSegment) {
+                        // --- ИЗМЕНЕНИЕ: Проигрывание звука из пула ---
+                        const soundToPlay = tickSoundPool[poolIndex];
+                        soundToPlay.currentTime = 0;
+                        soundToPlay.play().catch(e => {});
+                        poolIndex = (poolIndex + 1) % POOL_SIZE; // Переходим к следующему звуку в пуле
+                        // --- КОНЕЦ ИЗМЕНЕНИЯ ---
+                        lastSegment = currentSegment;
+                    }
+                    
+                    if (progress < SPIN_DURATION) {
+                        requestAnimationFrame(step);
+                    } else {
+                        onSpinEnd(endRotation);
+                    }
+                }
+                requestAnimationFrame(step);
+            }
+
             function spinWheel() {
                 const activePrizes = prizes.filter(p => p.active);
                 if (isSpinning || activePrizes.length === 0) return;
+                
                 isSpinning = true;
+                lastWinnerRawText = null;
+                hideWinnerBanner();
+
                 document.querySelectorAll('.wheel-labels span').forEach(span => {
                     span.classList.remove('winner-highlight');
                 });
-                spinSound.currentTime = 0;
-                spinSound.play().catch(e => console.log("Звук не может быть воспроизведен автоматически."));
+
                 const winningPrize = activePrizes[Math.floor(Math.random() * activePrizes.length)];
-                const originalIndex = prizes.findIndex(p => p.text === winningPrize.text && p.active);
+                lastWinnerRawText = winningPrize.rawText;
+                const originalIndex = prizes.findIndex(p => p.rawText === winningPrize.rawText);
+
                 const numSectors = prizes.length;
                 const sectorAngle = 360 / numSectors;
-                const randomJitter = Math.random() * 0.8 + 0.1;
-                const randomPositionInSector = sectorAngle * randomJitter;
-                const targetAngle = (360 - (originalIndex * sectorAngle)) - randomPositionInSector;
+                
+                const randomAngleInSector = Math.random() * sectorAngle;
+                const winningAngle = (originalIndex * sectorAngle) + randomAngleInSector;
+                const targetAngle = 90 - winningAngle;
+
                 const baseRotations = 6;
                 const totalRotations = baseRotations * 360;
-                currentRotation = (currentRotation - (currentRotation % 360)) + totalRotations + targetAngle;
-                const spinDuration = 5;
-                const transitionStyle = `transform ${spinDuration}s var(--transition-curve)`;
-                wheel.style.transition = transitionStyle;
-                wheelLabels.style.transition = transitionStyle;
-                wheel.style.transform = `rotate(${currentRotation}deg)`;
-                wheelLabels.style.transform = `rotate(${currentRotation}deg)`;
-                const onSpinEnd = () => {
-                    pointer.classList.add('settle');
-                    isSpinning = false;
-                    showPrize(winningPrize.text);
-                    winSound.currentTime = 0;
-                    winSound.play().catch(e => console.log("Звук не может быть воспроизведен автоматически."));
-                    const finalAngle = currentRotation % 360;
-                    wheel.style.transition = 'none';
-                    wheelLabels.style.transition = 'none';
-                    wheel.style.transform = `rotate(${finalAngle}deg)`;
-                    wheelLabels.style.transform = `rotate(${finalAngle}deg)`;
-                    currentRotation = finalAngle;
-                    const winnerLabel = document.querySelector(`.wheel-labels span[data-index="${originalIndex}"]`);
-                    if (winnerLabel) {
-                        winnerLabel.classList.add('winner-highlight');
-                    }
-                };
-                wheel.addEventListener('transitionend', onSpinEnd, { once: true });
+                
+                const startRotation = currentRotation;
+                const endRotation = (startRotation - (startRotation % 360)) + totalRotations + targetAngle;
+
+                animateSpin(startRotation, endRotation);
             }
-            pointer.addEventListener('animationend', () => pointer.classList.remove('settle'));
-            function showPrize(text){clearTimeout(modalTimeout);prizeText.textContent=text;prizeModal.classList.add('visible');modalTimeout=setTimeout(()=>prizeModal.classList.remove('visible'),3000)}
-            updateBtn.addEventListener('click', updateWheel);
+
+            function onSpinEnd(finalRotation) {
+                isSpinning = false;
+                
+                // ИСПРАВЛЕНИЕ ЗДЕСЬ: Добавляем .pause() для надежности
+                winSound.pause();
+                winSound.currentTime = 0;
+                winSound.play().catch(e => console.log("Звук не может быть воспроизведен автоматически."));
+
+                currentRotation = finalRotation % 360;
+                
+                const winningPrize = prizes.find(p => p.rawText === lastWinnerRawText);
+                const originalIndex = prizes.findIndex(p => p.rawText === winningPrize.rawText);
+
+                const winnerLabel = document.querySelector(`.wheel-labels span[data-index="${originalIndex}"]`);
+                if (winnerLabel) {
+                    winnerLabel.classList.add('winner-highlight');
+                }
+                showWinnerBanner(winningPrize.text);
+            }
+
+            function showWinnerBanner(prizeText) {
+                clearTimeout(winnerBannerTimeout);
+                winnerText.textContent = prizeText;
+                winnerBanner.classList.add('show');
+                winnerBannerTimeout = setTimeout(hideWinnerBanner, 3000);
+            }
+
+            function hideWinnerBanner() {
+                clearTimeout(winnerBannerTimeout);
+                winnerBanner.classList.remove('show');
+            }
+
+            startBtn.addEventListener('click', spinWheel);
+            resetBtn.addEventListener('click', () => {
+                prizeInput.value = '';
+                updateWheel();
+                hideWinnerBanner();
+            });
             prizeInput.addEventListener('input', updateWheel); 
-            closeControlsBtn.addEventListener('click', () => {
-                document.body.classList.add('controls-closed');
-            });
-            openControlsBtn.addEventListener('click', () => {
-                document.body.classList.remove('controls-closed');
-            });
-            updateWheel();
             window.addEventListener('resize', updateWheel);
+            
+            prizeInput.addEventListener('focus', () => prizeDisplay.style.display = 'none');
+            prizeInput.addEventListener('blur', () => {
+                prizeDisplay.style.display = 'block';
+                syncDisplay();
+            });
+
+            winnerCloseBtn.addEventListener('click', hideWinnerBanner);
+            winnerHideBtn.addEventListener('click', () => {
+                if (lastWinnerRawText) {
+                    const lines = prizeInput.value.split('\n');
+                    const winnerLineIndex = lines.findIndex(line => line.trim() === lastWinnerRawText.trim());
+                    
+                    if (winnerLineIndex !== -1 && !lines[winnerLineIndex].trim().endsWith('.')) {
+                        lines[winnerLineIndex] += '.';
+                        prizeInput.value = lines.join('\n');
+                        updateWheel();
+                        lastWinnerRawText = null; 
+                    }
+                }
+                hideWinnerBanner();
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (e.target === prizeInput && !['Space', 'KeyR', 'KeyF'].includes(e.code)) return;
+
+                switch (e.code) {
+                    case 'Space': e.preventDefault(); spinWheel(); break;
+                    case 'KeyR': e.preventDefault(); resetBtn.click(); break;
+                    case 'KeyE': e.preventDefault(); prizeInput.focus(); break;
+                    case 'KeyF':
+                        e.preventDefault();
+                        if (!document.fullscreenElement) {
+                            document.documentElement.requestFullscreen();
+                        } else {
+                            document.exitFullscreen();
+                        }
+                        break;
+                    case 'KeyX':
+                        e.preventDefault();
+                        if (winnerBanner.classList.contains('show')) {
+                            hideWinnerBanner();
+                        } else {
+                            bannersSection.classList.toggle('hidden');
+                        }
+                        break;
+                    case 'KeyS':
+                        e.preventDefault();
+                        if (winnerBanner.classList.contains('show') && lastWinnerRawText && !isSpinning) {
+                             winnerHideBtn.click();
+                        }
+                        break;
+                }
+            });
+
+            updateWheel();
         });
-    </script>
-    <script>
-        if (window.innerWidth <= 900) {
-            document.body.classList.add('controls-closed');
-        }
     </script>
 </body>
 </html>
